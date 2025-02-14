@@ -2,7 +2,7 @@ name: "Common Crawl Pipeline"
 on:
   push:
     - main
-  workflow_dispatch:  # Permite ejecución manual
+  workflow_dispatch:  # Permite ejecución manual #
 
 jobs:
   crawl:

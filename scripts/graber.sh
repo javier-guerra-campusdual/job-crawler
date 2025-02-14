@@ -19,7 +19,7 @@ fi
 
 # Descomprimir el archivo descargado
 echo "Descomprimiendo el archivo $archivo_comprimido..."
-gunzip "$archivo_comprimido"
+gunzip -f "$archivo_comprimido"  # Usamos -f para sobrescribir el archivo descomprimido si ya existe
 
 # Comprobar si la descompresión fue exitosa
 if [ $? -ne 0 ]; then

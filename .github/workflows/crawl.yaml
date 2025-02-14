@@ -1,0 +1,29 @@
+name: "Common Crawl Pipeline"
+on:
+  push:
+    - main
+  #workflow_dispatch:  # Permite ejecución manual
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "Checkout del código"
+        uses: actions/checkout@v4
+
+      - name: "Configurar AWS CLI"
+        run: |
+          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws configure set region eu-east-1
+
+      - name: "Descargar y procesar WAT"
+        run: |
+          chmod +x graber.sh job.sh
+          ./graber.sh
+
+      - name: "Subir datos a Elasticsearch"
+        run: |
+          chmod +x upload_to_elasticsearch.sh
+          ./upload_to_elasticsearch.sh

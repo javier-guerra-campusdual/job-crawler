@@ -2,7 +2,7 @@ name: "Common Crawl Pipeline"
 on:
   push:
     - main
-  #workflow_dispatch:  # Permite ejecución manual
+  workflow_dispatch:  # Permite ejecución manual
 
 jobs:
   crawl:
@@ -16,7 +16,7 @@ jobs:
         run: |
           aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws configure set region eu-east-1
+          aws configure set region eu-west-1
 
       - name: "Descargar y procesar WAT"
         run: |

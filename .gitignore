@@ -1,0 +1,11 @@
+data/*
+scripts/archivo_descargado
+.terraform*
+*.tfstate*
+update_keys.py
+.env
+requirements.txt
+.terragrunt-cache
+aws
+node_modules/
+package-lock.json

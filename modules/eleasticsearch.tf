@@ -12,11 +12,13 @@ variable "environment" {
 variable "vpc_id" {
   type        = string
   description = "ID de la VPC"
+  default = "vpc-0c9f03551cb17af5d"
 }
 
 variable "subnet_ids" {
   type        = list(string)
   description = "IDs de las subnets privadas"
+  default = ["subnet-0399f98a4db137765","subnet-0b0842bc836a4b6cb","subnet-0eb5d5076276d2346"]
 }
 
 variable "instance_type" {
@@ -48,7 +50,7 @@ resource "aws_security_group" "elasticsearch" {
     from_port   = 9200
     to_port     = 9200
     protocol    = "tcp"
-    cidr_blocks = [data.aws_vpc.selected.cidr_block]
+    cidr_blocks = ["0.0.0.0/0"]
     description = "Elasticsearch REST API"
   }
 
@@ -56,7 +58,7 @@ resource "aws_security_group" "elasticsearch" {
     from_port   = 9300
     to_port     = 9300
     protocol    = "tcp"
-    cidr_blocks = [data.aws_vpc.selected.cidr_block]
+    cidr_blocks = ["0.0.0.0/0"]
     description = "Elasticsearch node communication"
   }
 
@@ -99,7 +101,7 @@ resource "aws_iam_instance_profile" "elasticsearch" {
 # Launch Template para Elasticsearch
 resource "aws_launch_template" "elasticsearch" {
   name_prefix   = "${var.project_name}-${var.environment}-es-"
-  image_id      = data.aws_ami.amazon_linux_2.id
+  image_id      = "ami-0076be86944570bff"
   instance_type = var.instance_type
 
   network_interfaces {

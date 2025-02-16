@@ -13,17 +13,29 @@ jobs:
         uses: actions/checkout@v4
 
       - name: "Configurar AWS CLI"
+        uses: aws-actions/configure-aws-credentials@v4
+        with:          
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-2
+
+      - name: "Obtener credenciales de Elasticsearch"
         run: |
-          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws configure set region eu-west-2
+          ES_CREDS=$(aws secretsmanager get-secret-value --secret-id elasticsearch/credentials --query SecretString --output text)
+          echo "ES_USERNAME=$(echo $ES_CREDS | jq -r .username)" >> $GITHUB_ENV
+          echo "ES_PASSWORD=$(echo $ES_CREDS | jq -r .password)" >> $GITHUB_ENV
 
       - name: "Descargar y procesar WAT"
         run: |
-          chmod +x graber.sh job.sh
-          ./graber.sh
+          chmod +x scripts/graber.sh scripts/job.sh
+          ./scripts/graber.sh
 
       - name: "Subir datos a Elasticsearch"
         run: |
           chmod +x upload_to_elasticsearch.sh
+          ES_HOST="${{ secrets.ES_HOST }}" \
+          ES_USERNAME="${{ env.ES_USERNAME }}" \
+          ES_PASSWORD="${{ env.ES_PASSWORD }}" \
           ./upload_to_elasticsearch.sh
+
+      

@@ -1,5 +1,6 @@
 ### 1. Crear el Secreto en AWS Secrets Manager
 resource "aws_secretsmanager_secret" "es_credentials" {
+  #name = "${var.project_name}/${var.environment}/elasticsearch/credentials"
   name = "elasticsearch/credentials"
 }
 
@@ -80,6 +81,15 @@ resource "aws_launch_template" "elasticsearch" {
   EOF
   )
 
+  /*
+  user_data = base64encode(templatefile("${path.module}/templates/user_data.sh", {
+    es_cluster_name = "${var.project_name}-${var.environment}"
+    es_version      = var.elasticsearch_version
+    es_username     = jsondecode(aws_secretsmanager_secret_version.es_credentials.secret_string).username
+    es_password     = jsondecode(aws_secretsmanager_secret_version.es_credentials.secret_string).password
+  }))
+  */
+
   block_device_mappings {
     device_name = "/dev/xvda"
     ebs {
@@ -92,6 +102,27 @@ resource "aws_launch_template" "elasticsearch" {
     Name = "${var.project_name}-${var.environment}-es"
   }
 }
+
+resource "aws_autoscaling_group" "elasticsearch" {
+  name                = "${var.project_name}-${var.environment}-es-asg"
+  desired_capacity    = 3
+  max_size           = 5
+  min_size           = 3
+  target_group_arns  = [aws_lb_target_group.elasticsearch.arn]
+  vpc_zone_identifier = var.subnet_ids
+
+  launch_template {
+    id      = aws_launch_template.elasticsearch.id
+    version = "$Latest"
+  }
+
+  tag {
+    key                 = "Name"
+    value              = "${var.project_name}-${var.environment}-es"
+    propagate_at_launch = true
+  }
+}
+
 
 ### 4. Configurar el ALB para Elasticsearch
 resource "aws_lb" "elasticsearch" {
@@ -127,10 +158,10 @@ resource "aws_lb_target_group" "elasticsearch" {
     Name = "${var.project_name}-${var.environment}-es-tg"
   }
 }
-
+*/
 resource "aws_lb_listener" "es_listener" {
   load_balancer_arn = aws_lb.elasticsearch.arn
-  port              = 80
+  port              = 9200
   protocol          = "HTTP"
 
   default_action {
@@ -139,6 +170,7 @@ resource "aws_lb_listener" "es_listener" {
   }
 }
 
+/*
 ### 5. IAM Role para Instancia EC2
 resource "aws_iam_role" "elasticsearch" {
   name = "${var.project_name}-${var.environment}-es-role"
@@ -161,7 +193,7 @@ resource "aws_iam_instance_profile" "elasticsearch" {
   name = "${var.project_name}-${var.environment}-es-profile"
   role = aws_iam_role.elasticsearch.name
 }
-
+*/
 ### 6. Security Groups
 resource "aws_security_group" "elasticsearch" {
   name        = "${var.project_name}-${var.environment}-es-sg"
@@ -172,8 +204,17 @@ resource "aws_security_group" "elasticsearch" {
     from_port   = 9200
     to_port     = 9200
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    security_groups = [aws_security_group.elasticsearch_alb.id]
+    #cidr_blocks = ["0.0.0.0/0"]
     description = "Elasticsearch REST API"
+  }
+  
+  # Elasticsearch internal comunication
+  ingress {
+    from_port   = 9300
+    to_port     = 9300
+    protocol    = "tcp"    
+    self = true
   }
 
   egress {
@@ -194,10 +235,10 @@ resource "aws_security_group" "elasticsearch_alb" {
   vpc_id      = var.vpc_id
 
   ingress {
-    from_port   = 80
-    to_port     = 80
+    from_port   = 9200
+    to_port     = 9200
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    security_groups = [module.compute.compute_sg_id]
     description = "Allow HTTP traffic"
   }
 

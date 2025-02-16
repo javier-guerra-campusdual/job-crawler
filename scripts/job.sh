@@ -39,12 +39,13 @@ fi
 # Procesar los enlaces RSS dentro del archivo descomprimido
 echo "Buscando enlaces RSS..."
 
-grep -o '"Link":\[[^]]*\]' "$archivo_descargado" | \
-    jq -r '.[] | select(.rel=="alternate" and .type=="application/rss+xml") | .url' | \
-    while read -r url; do
-        echo "Enlace RSS: $url"  # Aquí imprimimos cada enlace RSS
-    done
+grep "Container" CC-MAIN-20241201162023-20241201192023-00022.warc.wat | jq ".Envelope" | jq '.["Payload-Metadata"]' | jq '.["HTTP-Response-Metadata"]' | jq '.["HTML-Metadata"]' | jq '.["Head"].["Link"],.["Links"]' | grep -vx "null" | jq .[] | jq -r 'select(.type == "application/rss+xml") | .url' | grep  "http"
 
 # Eliminar el archivo descomprimido
 rm -f "$archivo_descargado"
 echo "Archivo descomprimido y procesado correctamente."
+
+
+
+
+#sed -e '/^WARC-/d' -e '/^Content-/d' -e '/{/,/}/p' "small-data" > output.json0

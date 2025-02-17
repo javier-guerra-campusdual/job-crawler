@@ -10,12 +10,12 @@ archivo_comprimido="archivo_descargado.gz"
 echo "Descargando y procesando el archivo desde S3: $bucket_url..."
 
 # Usamos `aws s3 cp` para obtener el archivo comprimido y lo descomprimimos directamente en el pipe con `gunzip`
-aws s3 cp "$bucket_url" - | gunzip -c | while IFS= read -r linea; do
+#aws s3 cp "$bucket_url" - | gunzip -c | while IFS= read -r linea; do
   # Pasar cada línea a job.sh (directamente desde el pipe)
-  ./job.sh "$linea"
-done
+#  ./job.sh "$linea"
+#done
 
 # O si prefieres usar `xargs` para paralelizar
-# aws s3 cp "$bucket_url" - | gunzip -c | xargs -I {} -P 8 ./job.sh "{}"
+ aws s3 cp "$bucket_url" - | gunzip -c | xargs -I {} -P 4 ./job.sh "{}"
 
 echo "Proceso completado."

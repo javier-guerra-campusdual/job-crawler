@@ -14,11 +14,8 @@ URL="${BASE_URL}${1}"
 
 echo "Descargando y procesando el archivo desde $URL..."
 
-# Descargar el archivo desde S3, descomprimirlo y procesarlo todo en un solo pipeline
-resultado=$(aws s3 cp "$URL" - | gunzip -c | grep "Container" | \
-  jq '.Envelope | .["Payload-Metadata"] | .["HTTP-Response-Metadata"] | .["HTML-Metadata"] | .["Head"].["Link"],.["Links"]' | \
-  grep -vx "null" | jq .[] | jq -r 'select(.type == "application/rss+xml") | .url' | \
-  grep "http")
+# Descargar el archivo desde S3 y descomprimirlo en una variable
+resultado=$(aws s3 cp "$URL" - | gunzip | grep -E '^{\"Container' | jq '.Envelope.["Payload-Metadata"].["HTTP-Response-Metadata"].["HTML-Metadata"].["Head"].Link, .Links' | grep -vx "null" | jq .[] | jq -r 'select(.type == "application/rss+xml") | .url' |   grep "http")
 
 # Verificamos si hubo algún resultado
 if [ -z "$resultado" ]; then
@@ -28,6 +25,8 @@ fi
 
 # Subir el resultado a Elasticsearch
 echo "Subiendo los resultados a Elasticsearch..."
+
+printf "%s\n" "$resultado" >> output.txt
 #./upload_to_elasticsearch.sh "$resultado"
 
 echo "Proceso completado."

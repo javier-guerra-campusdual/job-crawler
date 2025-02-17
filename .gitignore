@@ -10,3 +10,4 @@ aws
 node_modules/
 package-lock.json
 
+scripts/output.txt

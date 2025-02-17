@@ -29,7 +29,7 @@ split -l 1000 "$bulk_file" "bulk_chunk_"
 # Subimos los datos en lotes
 for chunk in bulk_chunk_*; do
   echo "Subiendo lote $chunk a Elasticsearch..."
-  curl -X POST "$ES_HOST/$INDEX_NAME/_bulk" \
+  curl -X POST "$ES_HOST/$INDEX_NAME/url" \
     -u "$ES_USERNAME:$ES_PASSWORD" \
     -H "Content-Type: application/json" \
     --data-binary @"$chunk"

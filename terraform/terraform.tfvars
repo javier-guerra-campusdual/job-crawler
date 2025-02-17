@@ -1,2 +1,2 @@
-username= "qpoiwuer"
-password= "ñalksdjfqikbaqijhbahijewb"
+username= "elasticsearch"
+password= "campusdual"

@@ -30,7 +30,7 @@ resource "aws_launch_template" "compute" {
     
     # Configurar las credenciales de Elasticsearch
     mkdir -p /opt/crawler/config
-    aws secretsmanager get-secret-value --secret-id ${var.project_name}/${var.environment}/elasticsearch/credentials \
+    aws secretsmanager get-secret-value --secret-id elasticsearch/credentials \
       --query SecretString --output text > /opt/crawler/config/es_credentials.json
   EOF
   )
@@ -50,8 +50,8 @@ resource "aws_launch_template" "compute" {
 resource "aws_autoscaling_group" "compute" {
   name                = "${var.project_name}-${var.environment}-compute-asg"
   desired_capacity    = 2
-  max_size           = 4
-  min_size           = 1
+  max_size           = 6
+  min_size           = 2
   vpc_zone_identifier = var.subnet_ids
 
   launch_template {
@@ -70,7 +70,18 @@ resource "aws_security_group" "compute" {
   name        = "${var.project_name}-${var.environment}-compute-sg"
   description = "Security group for compute nodes"
   vpc_id      = var.vpc_id
-
+  /*ingress{
+    from_port=9200
+    to_port=9200
+    protocol="tcp"
+    security_groups=[]
+  }
+  ingress{
+    from_port=9300
+    to_port=9300
+    protocol="tcp"
+    security_groups=[aws_security_group.compute.id]
+  }*/
   egress {
     from_port   = 0
     to_port     = 0
@@ -81,58 +92,6 @@ resource "aws_security_group" "compute" {
   tags = local.common_tags
 }
 
-resource "aws_iam_role" "compute" {
-  name = "${var.project_name}-${var.environment}-compute-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          Service = "ec2.amazonaws.com"
-        }
-      }
-    ]
-  })
-}
-
-resource "aws_iam_instance_profile" "compute" {
-  name = "${var.project_name}-${var.environment}-compute-profile"
-  role = aws_iam_role.compute.name
-}
-
-resource "aws_iam_role_policy" "compute" {
-  name = "${var.project_name}-${var.environment}-compute-policy"
-  role = aws_iam_role.compute.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "s3:GetObject",
-          "s3:ListBucket"
-        ]
-        Resource = [
-          "arn:aws:s3:::commoncrawl",
-          "arn:aws:s3:::commoncrawl/*"
-        ]
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "secretsmanager:GetSecretValue"
-        ]
-        Resource = [
-          "arn:aws:secretsmanager:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:secret:${var.project_name}/${var.environment}/elasticsearch/*"
-        ]
-      }
-    ]
-  })
-}
 
 locals {
   common_tags = {
@@ -143,4 +102,3 @@ locals {
 }
 
 data "aws_region" "current" {}
-data "aws_caller_identity" "current" {}

@@ -35,4 +35,6 @@ while IFS= read -r linea; do
   ./job.sh "$linea"
 done < "$archivo_descomprimido"
 
+#cat "$archivo_descomprimido" | xargs -I {} -P 8 ./job.sh "{}"
+
 echo "Proceso completado."

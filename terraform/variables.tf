@@ -47,3 +47,13 @@ variable "volume_size" {
   description = "Tamaño del volumen EBS en GB"
   default     = 100
 }
+
+variable "username"{
+  type=string
+  sensitive=true
+}
+
+variable "password"{
+  type=string
+  sensitive=true
+}

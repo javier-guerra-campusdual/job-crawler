@@ -12,6 +12,8 @@ module "elasticsearch" {
   instance_type       = var.instance_type
   elasticsearch_version = var.elasticsearch_version
   volume_size         = var.volume_size
+  username= var.username
+  password= var.password
 }
 
 module "compute" {

@@ -39,7 +39,11 @@ fi
 # Procesar los enlaces RSS dentro del archivo descomprimido
 echo "Buscando enlaces RSS..."
 
-grep "Container" CC-MAIN-20241201162023-20241201192023-00022.warc.wat | jq ".Envelope" | jq '.["Payload-Metadata"]' | jq '.["HTTP-Response-Metadata"]' | jq '.["HTML-Metadata"]' | jq '.["Head"].["Link"],.["Links"]' | grep -vx "null" | jq .[] | jq -r 'select(.type == "application/rss+xml") | .url' | grep  "http"
+#grep "Container" CC-MAIN-20241201162023-20241201192023-00022.warc.wat | jq ".Envelope" | jq '.["Payload-Metadata"]' | jq '.["HTTP-Response-Metadata"]' | jq '.["HTML-Metadata"]' | jq '.["Head"].["Link"],.["Links"]' | grep -vx "null" | jq .[] | jq -r 'select(.type == "application/rss+xml") | .url' | grep  "http"
+
+#grep "Container" CC-MAIN-20241201162023-20241201192023-00022.warc.wat | jq  ' .["Envelope"] |  .["Payload-Metadata"] | .["HTTP-Response-Metadata"] | .["HTML-Metadata"] | .["Head"].["Link"],.["Links"]' | grep -vx "null" | jq .[] | jq -r 'select(.type == "application/rss+xml") | .url' | grep  "http"
+
+grep "Container" $archivo_descargado | jq  ' .["Envelope"] |  .["Payload-Metadata"] | .["HTTP-Response-Metadata"] | .["HTML-Metadata"] | .["Head"].["Link"],.["Links"]' | grep -vx "null" | jq .[] | jq -r 'select(.type == "application/rss+xml") | .url' | grep  "http"
 
 # Eliminar el archivo descomprimido
 rm -f "$archivo_descargado"

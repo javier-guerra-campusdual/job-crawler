@@ -5,87 +5,38 @@ ES_HOST="${ES_HOST}"
 ES_USERNAME="${ES_USERNAME}"
 ES_PASSWORD="${ES_PASSWORD}"
 INDEX_NAME="job_rss_feeds"
-#ELASTICSEARCH_HOST="http://<IP-DE-EC2>:9200"
 
-
-# Archivo de URLs
-urls_file="urls.txt"
-
-# Verificar si el archivo existe
-if [ ! -f "$urls_file" ]; then
-  echo "Error: Archivo $urls_file no encontrado."
+# Verificamos si se pasó un argumento con el archivo de URLs
+if [ -z "$1" ]; then
+  echo "Error: Debes proporcionar la URL del archivo WARC.WAT como argumento."
   exit 1
 fi
 
+# Creamos un archivo temporal para almacenar los datos en formato bulk
+bulk_file=$(mktemp)
 
-# Crear índice con mapping adecuado
-curl -X PUT -u "${ES_USERNAME}:${ES_PASSWORD}" "${ES_HOST}/${INDEX_NAME}" -H "Content-Type: application/json" -d '{
-  "mappings": {
-    "properties": {
-      "url": { "type": "keyword" },
-      "title": { "type": "text" },
-      "description": { "type": "text" },
-      "company": { "type": "keyword" },
-      "location": { "type": "keyword" },
-      "date_found": { "type": "date" }
-    }
-  }
-}'
-
-# Leer cada URL y enviarla a Elasticsearch
-echo "Subiendo URLs a Elasticsearch..."
+# Leemos las URLs desde la entrada estándar y las convertimos en formato bulk
+echo "Preparando datos para Elasticsearch..."
 while IFS= read -r url; do
-  curl -X POST -u "${ES_USERNAME}:${ES_PASSWORD}" "${ES_HOST}/${INDEX_NAME}/_doc/" \
+  # Formateamos cada URL como un documento en formato bulk
+  echo '{"index": {}}' >> "$bulk_file"
+  echo "{\"url\": \"$url\", \"fecha\": \"$(date -u +'%Y-%m-%dT%H:%M:%SZ')\"}" >> "$bulk_file"
+done < "$1"
+
+# Dividimos el archivo bulk en partes de 1000 documentos
+split -l 1000 "$bulk_file" "bulk_chunk_"
+
+# Subimos los datos en lotes
+for chunk in bulk_chunk_*; do
+  echo "Subiendo lote $chunk a Elasticsearch..."
+  curl -X POST "$ES_HOST/$INDEX_NAME/_bulk" \
+    -u "$ES_USERNAME:$ES_PASSWORD" \
     -H "Content-Type: application/json" \
-    -d "{
-      \"url\": \"$url\",
-      \"date_found\": \"$(date -u +"%Y-%m-%dT%H:%M:%SZ")\"
-    }"
-done < "$urls_file"
+    --data-binary @"$chunk"
+done
+
+# Limpiar archivos temporales
+rm "$bulk_file"
+rm bulk_chunk_*
 
 echo "Proceso completado."
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Leer cada URL y enviarla a Elasticsearch
-#echo "Subiendo URLs a Elasticsearch..."
-#while IFS= read -r url; do
-#  curl -s -X POST "$ELASTICSEARCH_HOST/$INDEX_NAME/_doc/" \
-#    -H "Content-Type: application/json" \
-#    -d "{\"url\": \"$url\"}"
-#done < "$urls_file"
-
-#echo "Proceso completado."

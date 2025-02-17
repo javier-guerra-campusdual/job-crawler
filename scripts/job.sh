@@ -18,11 +18,7 @@ archivo_temp=$(mktemp)
 # Descargar el archivo desde S3 y descomprimirlo en una variable
 aws s3 cp "$URL" - | gunzip | grep -E '^{\"Container' | jq '.Envelope.["Payload-Metadata"].["HTTP-Response-Metadata"].["HTML-Metadata"].["Head"].Link, .Links' | grep -vx "null" | jq .[] | jq -r 'select(.type == "application/rss+xml") | .url' > "$archivo_temp"
 
-# Verificamos si hubo algún resultado
-if [ -z "$resultado" ]; then
-  echo "No se encontraron enlaces RSS."
-  exit 1
-fi
+
 
 # Subir el resultado a Elasticsearch
 echo "Subiendo los resultados a Elasticsearch..."

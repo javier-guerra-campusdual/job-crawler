@@ -1,10 +1,9 @@
----
 - name: Configure Elasticsearch Nodes
   hosts: all
   become: yes
   vars:
     seed_file: /home/ubuntu/seed_hosts.txt
-    docker_compose_file: /home/ubuntu/docker-compose.yml  # Ruta de destino para el archivo docker-compose.yml
+    docker_compose_file: /home/ubuntu/docker-compose.yml.j2  # Ruta de destino para el archivo docker-compose.yml
 
   tasks:
     - name: Copy seed_hosts.txt to the node
@@ -13,19 +12,9 @@
         dest: "{{ seed_file }}"
         mode: '0644'
 
-    - name: Copy docker-compose.yml to the node
-      copy:
-        src: ./docker-compose.yml  # Ruta local del archivo docker-compose.yml
-        dest: "{{ docker_compose_file }}"  # Ruta de destino en la instancia EC2
-        mode: '0644'
-
     - name: Get private IP of the current host
       set_fact:
         PRIVATE_IP: "{{ ansible_default_ipv4.address }}"
-
-    - name: Debug PRIVATE value
-      debug:
-        msg: "PRIVATE_IP:{{ PRIVATE_IP }}"
 
     - name: Slurp seed_hosts.txt file to fetch its contents
       slurp:
@@ -35,6 +24,9 @@
     - name: Check decoded content of seed_hosts.txt
       debug:
         msg: "Seed hosts content: {{ seed_file_content.content | b64decode }}"
+    - name:
+      set_fact:
+        NODES_CLUSTER_MASTER: "{{ seed_file_content.content | b64decode }}"
 
     - name: Clean the seed hosts content (remove carriage returns and newlines)
       set_fact:
@@ -44,14 +36,20 @@
       set_fact:
         SEED_HOSTS: "{{ cleaned_seed_hosts | split(',') | reject('equalto', PRIVATE_IP) | join(',') }}"
 
-
     - name: Debug SEED_HOSTS value
       debug:
         msg: "SEED_HOSTS: {{ SEED_HOSTS }}"
 
-    - name: Set environment variable for SEED_HOSTS
-      shell: |
-        echo "export SEED_HOSTS={{ SEED_HOSTS }}" >> /home/ubuntu/.bashrc
+    - name: Generate docker-compose.yml from template
+      template:
+        src: ./docker-compose.yml.j2  # Ruta de la plantilla
+        dest: /home/ubuntu/docker-compose.yml  # Ruta de destino
+        mode: '0644'
+
+    - name: Start Elasticsearch with Docker Compose
+      command: docker compose down
+      args:
+        chdir: /home/ubuntu
 
     - name: Start Elasticsearch with Docker Compose
       command: docker compose up -d

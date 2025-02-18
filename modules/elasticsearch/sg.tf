@@ -12,6 +12,12 @@ resource "aws_security_group" "elasticsearch" {
     #cidr_blocks = ["0.0.0.0/0"]
     description = "Elasticsearch REST API"
   }
+  ingress {
+    from_port   = 9200
+    to_port     = 9200
+    protocol    = "tcp"
+    self=true
+  }
   
   # Elasticsearch internal comunication
   ingress {

@@ -40,8 +40,12 @@ resource "aws_lb_listener" "es_listener" {
   protocol          = "HTTP"
 
   default_action {
-    type = "forward"
-    target_group_arn = aws_lb_target_group.elasticsearch.arn
+    type             = "fixed-response"
+    fixed_response {
+      status_code     = "404"
+      content_type    = "text/plain"
+      message_body    = "Path not found"
+    }
   }
 }
 
@@ -50,4 +54,22 @@ resource "aws_lb_target_group_attachment" "my_target_group_attachment" {
   target_group_arn    = aws_lb_target_group.elasticsearch.arn
   target_id           = aws_instance.elasticsearch_nodes[count.index].id
   port                = 9200
+}
+
+
+resource "aws_lb_listener_rule" "my_lb_listener_rule_web_foward" {
+  listener_arn = aws_lb_listener.es_listener.arn
+  priority     = 20  # Prioridad de la regla, asegúrate de que no se solape con otras
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.elasticsearch.arn
+  }
+  
+
+  condition {
+    path_pattern{
+    values = ["/*"]
+    }
+  }
 }

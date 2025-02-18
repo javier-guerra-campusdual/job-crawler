@@ -1,0 +1,39 @@
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.6.0
+    container_name: elasticsearch
+    network_mode: host
+    environment:
+      - cluster.name=es-cluster
+      - node.name=elasticsearch-node-{{ ansible_default_ipv4.address }}
+      - discovery.seed_hosts={{ SEED_HOSTS }}
+      - cluster.initial_master_nodes={{ NODES_CLUSTER_MASTER }}
+      - ELASTIC_PASSWORD=campusdual
+      - ELASTIC_USER=elastic
+      - xpack.security.enabled=false  # Habilitar la seguridad
+      - ingest.geoip.downloader.enabled=false # Deshabilitar la descarga de base de datos GeoIP
+      - "ES_JAVA_OPTS=-Xms8g -Xmx8g"  # Asigna 15 GB de memoria mínima y máxima para Elasticsearch
+      - network.host= 0.0.0.0  # Allows connections on all interfaces
+      - transport.host= {{ PRIVATE_IP }}  # Specify the external IP for transport layer (ensure all nodes use the external IP)
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
+      interval: 30s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 14g           # Limita el contenedor a 15 GB de RAM
+        reservations:
+          memory: 14g           # Reserva 15 GB de RAM para Elasticsearch
+          cpus: '1'           # Reserva 0.5 núcleos de CPU (se mantiene por si necesitas reservas mínimas de CPU)
+
+volumes:
+  elasticsearch_data:
+    driver: local
+
+

@@ -19,6 +19,15 @@
         dest: "{{ docker_compose_file }}"  # Ruta de destino en la instancia EC2
         mode: '0644'
 
+    - name: Get private IP of the current host
+      set_fact:
+        PRIVATE_IP: "{{ ansible_default_ipv4.address }}"
+        
+    - name: Set SEED_HOSTS variable by filtering the private IP
+      set_fact:
+        SEED_HOSTS: "{{ lookup('file', seed_file) | split('\n') | select('search', '^((?!' + PRIVATE_IP + ').)*$') | join(',') }}"
+
+
     - name: Filter private IP from the list of seed hosts and set environment variable
       shell: |
         PRIVATE_IP=$(hostname -I | awk '{print $1}')

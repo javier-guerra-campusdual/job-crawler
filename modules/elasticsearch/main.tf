@@ -95,9 +95,9 @@ resource "null_resource" "provisioner2" {
     command = "export ANSIBLE_CONFIG=../modules/elasticsearch/ansible/ansible.cfg && ansible-playbook -i ../modules/elasticsearch/ansible/hosts.ini ../modules/elasticsearch/ansible/install2.yml"
   }
   # Usar triggers para forzar la ejecución del recurso
-  #triggers = {
-  #  always_run = "${timestamp()}"  # Usamos timestamp como valor cambiante
-  #}
+  triggers = {
+    always_run = "${timestamp()}"  # Usamos timestamp como valor cambiante
+  }
   
   depends_on = [null_resource.provisioner1]
 }

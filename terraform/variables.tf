@@ -30,11 +30,7 @@ variable "subnet_ids" {
   default     = ["subnet-0399f98a4db137765", "subnet-0b0842bc836a4b6cb", "subnet-0eb5d5076276d2346"]
 }
 
-variable "instance_type" {
-  type        = string
-  description = "Tipo de instancia EC2"
-  default     = "t3.xlarge"
-}
+
 
 variable "elasticsearch_version" {
   type        = string
@@ -56,4 +52,13 @@ variable "username"{
 variable "password"{
   type=string
   sensitive=true
+}
+variable "private_key_path" {
+  description = "Ruta al archivo de la clave privada SSH para acceder a las instancias EC2."
+  type        = string
+}
+
+variable "public_key_path" {
+  description = "Ruta al archivo de la clave pública SSH asociada a la clave privada para acceder a las instancias EC2."
+  type        = string
 }

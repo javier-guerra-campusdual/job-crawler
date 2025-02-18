@@ -1,3 +1,4 @@
+/*
 ### 4. Configurar el ALB para Elasticsearch
 resource "aws_lb" "elasticsearch" {
   name               = "${var.project_name}-${var.environment}-es-alb"
@@ -43,3 +44,4 @@ resource "aws_lb_listener" "es_listener" {
     target_group_arn = aws_lb_target_group.elasticsearch.arn
   }
 }
+*/

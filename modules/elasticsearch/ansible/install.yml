@@ -1,0 +1,63 @@
+---
+- hosts: all
+  become: true
+
+  tasks:
+    - name: Actualizar todos los paquetes a la última versión
+      apt:
+        update_cache: yes
+        upgrade: dist
+        autoremove: yes
+        autoclean: yes
+        
+    - name: Instalar paquetes del sistema necesarios
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+        state: latest
+        update_cache: true
+
+    - name: Crear directorio para llaves de Docker
+      file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+
+    - name: Descargar la clave GPG de Docker
+      command:
+        cmd: curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+
+
+    - name: Agregar el repositorio de Docker al archivo docker.list
+      shell: |
+            echo \
+              "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+              $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+              tee /etc/apt/sources.list.d/docker.list > /dev/null
+      args:
+        executable: /bin/bash
+
+
+    - name: Actualizar índice de apt
+      apt:
+        update_cache: yes
+
+    - name: Instalar Docker y sus componentes
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: latest
+
+    - name: Add remote "ubuntu" user to "docker" group
+      user:
+        name: ubuntu
+        groups: docker
+        append: yes
+        

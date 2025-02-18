@@ -11,3 +11,4 @@ node_modules/
 package-lock.json
 
 scripts/output.txt
+my-ec2-key

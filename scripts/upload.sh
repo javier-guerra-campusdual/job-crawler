@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Configuración de Elasticsearch
-ES_HOST="${ES_HOST}"
-ES_USERNAME="${ES_USERNAME}"
-ES_PASSWORD="${ES_PASSWORD}"
+ES_HOST="localhost:9200"
+ES_USERNAME="elastic"
+ES_PASSWORD="campusdual"
 INDEX_NAME="job_rss_feeds"
 
 # Verificamos si se pasó un argumento con el archivo de URLs
@@ -11,6 +11,7 @@ if [ -z "$1" ]; then
   echo "Error: Debes proporcionar la URL del archivo WARC.WAT como argumento."
   exit 1
 fi
+
 
 # Creamos un archivo temporal para almacenar los datos en formato bulk
 bulk_file=$(mktemp)
@@ -28,8 +29,8 @@ split -l 1000 "$bulk_file" "bulk_chunk_"
 
 # Subimos los datos en lotes
 for chunk in bulk_chunk_*; do
-  echo "Subiendo lote $chunk a Elasticsearch..."
-  curl -X POST "$ES_HOST/$INDEX_NAME/url" \
+  echo "Subiendo lote a Elasticsearch..."
+  curl -X POST "$ES_HOST/$INDEX_NAME/_bulk" \
     -u "$ES_USERNAME:$ES_PASSWORD" \
     -H "Content-Type: application/json" \
     --data-binary @"$chunk"

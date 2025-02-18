@@ -1,0 +1,32 @@
+---
+- name: Configure Elasticsearch Nodes
+  hosts: all
+  become: yes
+  vars:
+    seed_file: /home/ubuntu/seed_hosts.txt
+    docker_compose_file: /home/ubuntu/docker-compose.yml  # Ruta de destino para el archivo docker-compose.yml
+
+  tasks:
+    - name: Copy seed_hosts.txt to the node
+      copy:
+        src: ./seed_hosts.txt
+        dest: "{{ seed_file }}"
+        mode: '0644'
+
+    - name: Copy docker-compose.yml to the node
+      copy:
+        src: ./docker-compose.yml  # Ruta local del archivo docker-compose.yml
+        dest: "{{ docker_compose_file }}"  # Ruta de destino en la instancia EC2
+        mode: '0644'
+
+    - name: Filter private IP from the list of seed hosts and set environment variable
+      shell: |
+        PRIVATE_IP=$(hostname -I | awk '{print $1}')
+        SEED_HOSTS=$(cat {{ seed_file }} | tr '\n' ',' | sed 's/,{{ PRIVATE_IP }},/,/g' | sed 's/^,//' | sed 's/,$//')
+        echo "export SEED_HOSTS={{ SEED_HOSTS }}" >> /home/ubuntu/.bashrc
+      register: result
+
+    - name: Start Elasticsearch with Docker Compose
+      command: docker-compose up -d
+      args:
+        chdir: /home/ubuntu

@@ -16,6 +16,6 @@ echo "Descargando y procesando el archivo desde S3: $bucket_url..."
 #done
 
 # O si prefieres usar `xargs` para paralelizar
- aws s3 cp "$bucket_url" - | gunzip -c | xargs -I {} -P 4 ./job.sh "{}"
+aws s3 cp "$bucket_url" - | gunzip -c | xargs -I {} -P 1 ./job.sh "{}"
 
 echo "Proceso completado."

@@ -19,12 +19,8 @@ archivo_temp=$(mktemp)
 aws s3 cp "$URL" - | gunzip | grep -E '^{\"Container' | jq '.Envelope.["Payload-Metadata"].["HTTP-Response-Metadata"].["HTML-Metadata"].["Head"].Link, .Links' | grep -vx "null" | jq .[] | jq -r 'select(.type == "application/rss+xml") | .url' > "$archivo_temp"
 
 
-
-# Subir el resultado a Elasticsearch
-echo "Subiendo los resultados a Elasticsearch..."
-
 #printf "%s\n" "$archivo_temp" >> output.txt
-./upload_to_elasticsearch.sh "$archivo_temp"
+./upload.sh "$archivo_temp"
 
 rm "$archivo_temp"
 

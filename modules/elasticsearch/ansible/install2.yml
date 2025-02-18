@@ -22,20 +22,38 @@
     - name: Get private IP of the current host
       set_fact:
         PRIVATE_IP: "{{ ansible_default_ipv4.address }}"
-        
-    - name: Set SEED_HOSTS variable by filtering the private IP
+
+    - name: Debug PRIVATE value
+      debug:
+        msg: "PRIVATE_IP:{{ PRIVATE_IP }}"
+
+    - name: Slurp seed_hosts.txt file to fetch its contents
+      slurp:
+        src: "{{ seed_file }}"
+      register: seed_file_content
+    
+    - name: Check decoded content of seed_hosts.txt
+      debug:
+        msg: "Seed hosts content: {{ seed_file_content.content | b64decode }}"
+
+    - name: Clean the seed hosts content (remove carriage returns and newlines)
       set_fact:
-        SEED_HOSTS: "{{ lookup('file', seed_file) | split('\n') | select('search', '^((?!' + PRIVATE_IP + ').)*$') | join(',') }}"
+        cleaned_seed_hosts: "{{ seed_file_content.content | b64decode | replace('\r', '') | replace('\n', '') }}"
+
+    - name: Set SEED_HOSTS variable by excluding the private IP using reject
+      set_fact:
+        SEED_HOSTS: "{{ cleaned_seed_hosts | split(',') | reject('equalto', PRIVATE_IP) | join(',') }}"
 
 
-    - name: Filter private IP from the list of seed hosts and set environment variable
+    - name: Debug SEED_HOSTS value
+      debug:
+        msg: "SEED_HOSTS: {{ SEED_HOSTS }}"
+
+    - name: Set environment variable for SEED_HOSTS
       shell: |
-        PRIVATE_IP=$(hostname -I | awk '{print $1}')
-        SEED_HOSTS=$(cat {{ seed_file }} | tr '\n' ',' | sed 's/,{{ PRIVATE_IP }},/,/g' | sed 's/^,//' | sed 's/,$//')
         echo "export SEED_HOSTS={{ SEED_HOSTS }}" >> /home/ubuntu/.bashrc
-      register: result
 
     - name: Start Elasticsearch with Docker Compose
-      command: docker-compose up -d
+      command: docker compose up -d
       args:
         chdir: /home/ubuntu

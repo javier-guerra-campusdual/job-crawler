@@ -1,8 +1,8 @@
-/*
+
 ### 4. Configurar el ALB para Elasticsearch
 resource "aws_lb" "elasticsearch" {
   name               = "${var.project_name}-${var.environment}-es-alb"
-  internal           = true
+  internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.elasticsearch_alb.id]
   subnets            = var.subnet_ids
@@ -44,4 +44,10 @@ resource "aws_lb_listener" "es_listener" {
     target_group_arn = aws_lb_target_group.elasticsearch.arn
   }
 }
-*/
+
+resource "aws_lb_target_group_attachment" "my_target_group_attachment" {
+  count               = 3
+  target_group_arn    = aws_lb_target_group.elasticsearch.arn
+  target_id           = aws_instance.elasticsearch_nodes[count.index].id
+  port                = 9200
+}

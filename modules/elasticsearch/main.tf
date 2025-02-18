@@ -43,7 +43,7 @@ resource "null_resource" "generate_seed_file" {
     command = <<EOT
       echo "Generando archivo de configuración localmente..."
       # Crear archivo seed_hosts.txt con todas las IPs privadas
-      echo "${join(",", [for instance in aws_instance.elasticsearch_nodes : instance.private_ip])}" > ../modules/elasticsearch/ansible/seed_hosts.txt 
+      echo "${join(",", [for instance in aws_instance.elasticsearch_nodes : instance.private_ip])}" > ../modules/elasticsearch/ansible/seed_hosts.txt
       echo "listo"
     EOT
   }
@@ -66,15 +66,22 @@ resource "null_resource" "update_hosts_ini1" {
 
 resource "null_resource" "update_hosts_ini2" {
   provisioner "local-exec" {
-    command = "echo \"${join("\n", [for ip in aws_instance.elasticsearch_nodes[*].public_ip : "${ip} ansible_user=ubuntu ansible_ssh_private_key_file=../my-ec2-key"])}\" >> ../modules/elasticsearch/ansible/hosts.ini"
+    command = <<-EOT
+      echo "${join("\n", [for ip in aws_instance.elasticsearch_nodes[*].public_ip : "${ip} ansible_user=ubuntu ansible_ssh_private_key_file=../my-ec2-key hostname=elasticsearch-node-${ip}"]) }" >> ../modules/elasticsearch/ansible/hosts.ini
+      echo "listo"
+    EOT
   }
 
   triggers = {
     always_run = "${timestamp()}"
   }
 
-  depends_on = [null_resource.update_hosts_ini1,aws_instance.elasticsearch_nodes]  # Esto asegura que las instancias estén creadas antes de ejecutar el local-exec
+  depends_on = [
+    null_resource.update_hosts_ini1,
+    aws_instance.elasticsearch_nodes
+  ]
 }
+
 
 
 resource "null_resource" "provisioner1" {

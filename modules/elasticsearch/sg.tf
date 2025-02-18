@@ -8,8 +8,8 @@ resource "aws_security_group" "elasticsearch" {
     from_port   = 9200
     to_port     = 9200
     protocol    = "tcp"
-    #security_groups = [aws_security_group.elasticsearch_alb.id]
-    cidr_blocks = ["0.0.0.0/0"]
+    security_groups = [aws_security_group.elasticsearch_alb.id]
+    #cidr_blocks = ["0.0.0.0/0"]
     description = "Elasticsearch REST API"
   }
   

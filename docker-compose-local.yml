@@ -2,39 +2,36 @@ services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.6.0
     container_name: elasticsearch
+    network_mode: bridge
     environment:
       - cluster.name=es-cluster
-      - node.name=elasticsearch-node-{{ ansible_host }}
-      - discovery.seed_hosts={{ SEED_HOSTS }}
-      - cluster.initial_master_nodes={{ SEED_HOSTS }}
+      - node.name=elasticsearch-node-${HOST_IP}
+      - discovery.seed_hosts=${HOST_IP}
+      - cluster.initial_master_nodes=${HOST_IP}
       - ELASTIC_PASSWORD=campusdual
       - ELASTIC_USER=elastic
-      - xpack.security.enabled=true  # Habilitar la seguridad
+      - xpack.security.enabled=false  # Habilitar la seguridad
       - ingest.geoip.downloader.enabled=false # Deshabilitar la descarga de base de datos GeoIP
-      - ES_JAVA_OPTS=-Xms15g -Xmx15g  # Asigna 15 GB de memoria mínima y máxima para Elasticsearch
+      - ES_JAVA_OPTS=-Xms2g -Xmx2g  # Asigna 15 GB de memoria mínima y máxima para Elasticsearch
     ports:
       - "9200:9200"
       - "9300:9300"
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
-    networks:
-      - elastic_network
+
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9200"]
+      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
       interval: 30s
       retries: 5
     deploy:
       resources:
         limits:
-          memory: 15g           # Limita el contenedor a 15 GB de RAM
+          memory: 5g           # Limita el contenedor a 15 GB de RAM
         reservations:
-          memory: 15g           # Reserva 15 GB de RAM para Elasticsearch
+          memory: 5g           # Reserva 15 GB de RAM para Elasticsearch
           cpus: '1'           # Reserva 0.5 núcleos de CPU (se mantiene por si necesitas reservas mínimas de CPU)
 
 volumes:
   elasticsearch_data:
     driver: local
 
-networks:
-  elastic_network:
-    driver: bridge

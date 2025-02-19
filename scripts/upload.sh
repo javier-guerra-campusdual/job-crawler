@@ -4,7 +4,7 @@
 ES_HOST="localhost:9200"
 ES_USERNAME="elastic"
 ES_PASSWORD="campusdual"
-INDEX_NAME="job_rss_feeds"
+INDEX_NAME="url"
 
 # Verificamos si se pasó un argumento con el archivo de URLs
 if [ -z "$1" ]; then

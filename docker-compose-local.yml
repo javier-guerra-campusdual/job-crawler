@@ -2,7 +2,7 @@ services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.6.0
     container_name: elasticsearch
-    network_mode: bridge
+    network_mode: host
     environment:
       - cluster.name=es-cluster
       - node.name=elasticsearch-node-${HOST_IP}

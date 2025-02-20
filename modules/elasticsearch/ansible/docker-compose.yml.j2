@@ -13,8 +13,8 @@ services:
       - xpack.security.enabled=false  # Habilitar la seguridad
       - ingest.geoip.downloader.enabled=false # Deshabilitar la descarga de base de datos GeoIP
       - "ES_JAVA_OPTS=-Xms8g -Xmx8g"  # Asigna 15 GB de memoria mínima y máxima para Elasticsearch
-      - network.host= 0.0.0.0  # Allows connections on all interfaces
-      - transport.host= {{ PRIVATE_IP }}  # Specify the external IP for transport layer (ensure all nodes use the external IP)
+      #- network.host= 0.0.0.0 # Allows connections on all interfaces
+      #- transport.host= {{ PRIVATE_IP }}  # Specify the external IP for transport layer (ensure all nodes use the external IP)
     ports:
       - "9200:9200"
       - "9300:9300"

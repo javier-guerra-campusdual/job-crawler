@@ -10,6 +10,7 @@ resource "aws_instance" "elasticsearch_nodes" {
   instance_type   = "t3.xlarge"
   subnet_id       = var.subnet_ids[(count.index % 3)] 
   key_name        = aws_key_pair.key.key_name
+  disable_api_stop=false
 
   # Seguridad
   vpc_security_group_ids = [aws_security_group.elasticsearch.id]

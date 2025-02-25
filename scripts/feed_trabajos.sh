@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Dirección de Elasticsearch (ajústalo según tu configuración)
-ELASTICSEARCH_URL="http://172.20.178.149:9200/url_content/_search"
+ELASTICSEARCH_URL="http://172.29.59.22:9200/url_content/_search"
 
 # Consultar Elasticsearch para obtener los documentos que contienen el campo `url_content`
 # Aquí asumimos que el campo 'url_content' contiene los enlaces

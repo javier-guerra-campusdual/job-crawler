@@ -1,5 +1,5 @@
 #!/bin/bash
-ES_HOST="172.20.178.149:9200" # aqui configura la ip privada de tu wsl o lo que sea que uses, tambien la linea 82 o cerca de ahi
+ES_HOST="172.29.59.22:9200" # aqui configura la ip privada de tu wsl o lo que sea que uses, tambien la linea 82 o cerca de ahi
 ES_USERNAME="elastic"
 ES_PASSWORD="campusdual"
 INDEX_NAME="url_content"

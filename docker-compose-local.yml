@@ -5,11 +5,14 @@ services:
     network_mode: bridge
     environment:
       - cluster.name=es-cluster
-      - node.name=elasticsearch-node-172.20.178.149
-      - discovery.seed_hosts=172.20.178.149
-      - cluster.initial_master_nodes=172.20.178.149
+      - node.name=elasticsearch-node-172.29.59.22
+      #- node.name=elasticsearch-node-1
+      - discovery.seed_hosts=172.29.59.22
+      - cluster.initial_master_nodes=elasticsearch-node-172.29.59.22
+      #- cluster.initial_master_nodes=172.29.59.22     
       - ELASTIC_PASSWORD=campusdual
       - ELASTIC_USER=elastic
+      #- discovery.type: single-node
       - xpack.security.enabled=false  # Habilitar la seguridad
       - ingest.geoip.downloader.enabled=false # Deshabilitar la descarga de base de datos GeoIP
       - ES_JAVA_OPTS=-Xms2g -Xmx2g  # Asigna 15 GB de memoria mínima y máxima para Elasticsearch
@@ -22,13 +25,14 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
       interval: 30s
+      timeout: 10s
       retries: 5
     deploy:
       resources:
         limits:
-          memory: 5g           # Limita el contenedor a 15 GB de RAM
+          memory: 4g           # Limita el contenedor a 15 GB de RAM
         reservations:
-          memory: 5g           # Reserva 15 GB de RAM para Elasticsearch
+          memory: 2g           # Reserva 15 GB de RAM para Elasticsearch
           cpus: '1'           # Reserva 0.5 núcleos de CPU (se mantiene por si necesitas reservas mínimas de CPU)
 
 volumes:
